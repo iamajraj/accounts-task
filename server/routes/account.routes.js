@@ -1,5 +1,5 @@
 const express = require("express");
-const Account = require("../models/Account.model");
+const Account = require("../models/account.model");
 
 const router = express();
 
