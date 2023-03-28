@@ -1,15 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { UploadOutlined, UserOutlined } from "@ant-design/icons";
-import { Button, Calendar, DatePicker, Upload } from "antd";
+import { Button, Calendar, DatePicker, message, Upload } from "antd";
 import { toast, Toaster } from "react-hot-toast";
 import dayjs from "dayjs";
 import { Lightbox } from "react-modal-image";
+import axiosInstance from "../service/axiosInstance";
 
 const Tasks = () => {
     const [user, setUser] = useState(null);
-    const [tasks, setTasks] = useState([]);
-    const location = useLocation();
 
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -19,7 +18,9 @@ const Tasks = () => {
     const inpRef = useRef();
     const textInpRef = useRef();
 
-    const onSet = () => {
+    const { id } = useParams();
+
+    const onSet = async () => {
         const value = inpRef.current.value;
         if (!value || !selectedDate) {
             return toast("Date or number can't be empty.", {
@@ -27,50 +28,78 @@ const Tasks = () => {
             });
         }
 
-        let imgdata;
-        if (selectedFile) {
-            const fileReader = new FileReader();
+        // let imgdata;
+        // if (selectedFile) {
+        //     const fileReader = new FileReader();
 
-            fileReader.onload = () => {
-                imgdata = fileReader.result;
+        //     fileReader.onload = () => {
+        //         imgdata = fileReader.result;
 
-                setTasks((prev) => [
-                    ...prev,
-                    {
-                        date: selectedDate,
-                        number: Number(inpRef.current.value),
-                        text: textInpRef.current.value,
-                        imageFile: selectedFile,
-                        imageData: imgdata,
-                    },
-                ]);
-            };
+        //         setTasks((prev) => [
+        //             ...prev,
+        //             {
+        //                 date: selectedDate,
+        //                 number: Number(inpRef.current.value),
+        //                 text: textInpRef.current.value,
+        //                 imageFile: selectedFile,
+        //                 imageData: imgdata,
+        //             },
+        //         ]);
+        //     };
 
-            fileReader.readAsDataURL(selectedFile);
-        } else {
-            setTasks((prev) => [
-                ...prev,
-                {
-                    date: selectedDate,
-                    number: Number(inpRef.current.value),
-                    text: textInpRef.current.value,
-                    imageFile: selectedFile,
-                    imageData: imgdata,
-                },
-            ]);
+        //     fileReader.readAsDataURL(selectedFile);
+        // } else {
+        //     setTasks((prev) => [
+        //         ...prev,
+        //         {
+        //             date: selectedDate,
+        //             number: Number(inpRef.current.value),
+        //             text: textInpRef.current.value,
+        //             imageFile: selectedFile,
+        //             imageData: imgdata,
+        //         },
+        //     ]);
+        // }
+
+        try {
+            await axiosInstance.post("/accounts/tasks", {
+                date: selectedDate,
+                number: Number(inpRef.current.value),
+                text: textInpRef.current.value,
+                account_id: user._id,
+            });
+
+            await getAccount(user._id);
+
+            setSelectedFile(null);
+            inpRef.current.value = "";
+            textInpRef.current.value = "";
+
+            toast("Task has been added!", {
+                icon: "🚀",
+            });
+        } catch (err) {
+            message.error(
+                err?.response?.data?.message ?? "Something went wrong"
+            );
         }
-
-        setSelectedFile(null);
-        inpRef.current.value = "";
-        textInpRef.current.value = "";
-
-        toast("tasks has been added!", {
-            icon: "🚀",
-        });
     };
 
+    const getAccount = async (id) => {
+        try {
+            const res = await axiosInstance.get(`/accounts/${id}`);
+            const { account } = res.data;
+            setUser(account);
+        } catch (err) {}
+    };
+    useEffect(() => {
+        if (id) {
+            getAccount(id);
+        }
+    }, [id]);
+
     const renderDateCell = (value) => {
-        let isSame = tasks.find((aten) => {
+        let isSame = user.tasks?.find((aten) => {
             const date = dayjs(aten.date);
             if (date.isSame(value.toISOString(), "day")) {
                 return true;
@@ -110,10 +139,6 @@ const Tasks = () => {
         );
     };
 
-    useEffect(() => {
-        setUser(location?.state);
-    }, [location]);
-
     return user ? (
         <div className="py-3">
             <Toaster />
@@ -152,7 +177,7 @@ const Tasks = () => {
                                 ref={textInpRef}
                                 placeholder="Enter the text (optional)"
                             />
-                            <Upload
+                            {/* <Upload
                                 beforeUpload={(file) => {
                                     setSelectedFile(file);
                                     return false;
@@ -166,7 +191,7 @@ const Tasks = () => {
                                 <Button icon={<UploadOutlined />}>
                                     Select File (optional)
                                 </Button>
-                            </Upload>
+                            </Upload> */}
                         </div>
                         <div className="space-x-2">
                             <Button onClick={onSet} type="primary">

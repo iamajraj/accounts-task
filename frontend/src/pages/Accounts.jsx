@@ -1,42 +1,37 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, message, Space, Table } from "antd";
 import { Link } from "react-router-dom";
 import { Modal } from "antd";
 import { ExclamationCircleFilled } from "@ant-design/icons";
-
-const accounts = [
-    {
-        id: "1",
-        name: "John Brown",
-    },
-    {
-        id: "2",
-        name: "Alex Smith",
-    },
-    {
-        id: "3",
-        name: "James Bond",
-    },
-];
+import axiosInstance from "../service/axiosInstance";
 
 const Accounts = () => {
-    const [data, setData] = useState(accounts);
+    const [data, setData] = useState([]);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
 
-    const removeAccount = (id) => {
-        setData((prev) => prev.filter((t) => t.id !== id));
+    const removeAccount = async (id) => {
+        try {
+            await axiosInstance.delete(`/accounts/${id}`);
+            await getAccounts();
+        } catch (err) {
+            message.error(
+                err?.response?.data?.message ?? "Something went wrong"
+            );
+        }
     };
 
-    const setUser = (name) => {
-        setData((prev) => [
-            ...prev,
-            {
-                id: Date.now(),
-                name: name,
-            },
-        ]);
+    const getAccounts = async () => {
+        try {
+            const res = await axiosInstance.get("/accounts");
+            const { accounts } = res.data;
+            setData(accounts);
+        } catch (err) {}
     };
+
+    useEffect(() => {
+        getAccounts();
+    }, []);
 
     return (
         <div className="mt-10">
@@ -48,7 +43,7 @@ const Accounts = () => {
             <CreateAccountModal
                 showCreateModal={showCreateModal}
                 setShowCreateModal={setShowCreateModal}
-                setUser={setUser}
+                fetchAccounts={getAccounts}
             />
         </div>
     );
@@ -84,13 +79,11 @@ const AccountsTable = ({ data, removeAccount }) => {
             key: "action",
             render: (_, record) => (
                 <Space size="middle">
-                    <Link to={`/${record.id}`} state={record}>
-                        View
-                    </Link>
+                    <Link to={`/${record._id}`}>View</Link>
                     <a
                         className="text-red-500"
                         onClick={() => {
-                            showDeleteConfirm(record.id);
+                            showDeleteConfirm(record._id);
                         }}
                     >
                         Delete
@@ -105,18 +98,33 @@ const AccountsTable = ({ data, removeAccount }) => {
 const CreateAccountModal = ({
     showCreateModal,
     setShowCreateModal,
-    setUser,
+    fetchAccounts,
 }) => {
     const [name, setName] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const createAccount = () => {
+    const createAccount = async () => {
+        if (loading) return;
+
         if (!name) {
             return message.warning("Name field is required");
         }
-        setUser(name);
-        message.success("Account added successfully.");
-        setShowCreateModal(false);
-        setName("");
+
+        setLoading(true);
+
+        try {
+            await axiosInstance.post("/accounts", {
+                name,
+            });
+            await fetchAccounts();
+            message.success("Account added successfully.");
+            setShowCreateModal(false);
+            setName("");
+        } catch (err) {
+            message.error(err.response?.data.message ?? "Something went wrong");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
