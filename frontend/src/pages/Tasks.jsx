@@ -92,29 +92,11 @@ const Tasks = () => {
                 className={`w-full h-full flex justify-between relative p-1 gap-2 overflow-hidden ${
                     isSame
                         ? isSame.number > 0
-                            ? "border-[3px] border-l-green-500 border-b-green-500"
-                            : "border-[3px] border-l-red-500 border-b-red-500"
+                            ? "bg-green-500"
+                            : "bg-red-500"
                         : ""
                 }`}
-            >
-                {isSame?.text && (
-                    <p className="text-black text-[14px] flex-1">
-                        {isSame.text.length > 30
-                            ? isSame.text.slice(0, 30) + "..."
-                            : isSame.text}
-                    </p>
-                )}
-
-                {isSame?.image && (
-                    <div className="flex-1 c-shadow -top-5 left-0 bg-white rounded-md">
-                        <img
-                            src={isSame?.image}
-                            className="w-full h-full object-cover rounded-md"
-                            alt=""
-                        />
-                    </div>
-                )}
-            </div>
+            ></div>
         );
     };
 
