@@ -93,3 +93,16 @@ a {
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
+
+.c-scrollbar::-webkit-scrollbar {
+    width: 10px;
+}
+
+.c-scrollbar::-webkit-scrollbar-track {
+    background: rgb(238, 238, 238);
+    border-radius: 20px;
+}
+.c-scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(172, 172, 172);
+    border-radius: 20px;
+}

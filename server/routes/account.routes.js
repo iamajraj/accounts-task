@@ -1,7 +1,9 @@
 const express = require("express");
 const Account = require("../models/account.model");
+const formidable = require("express-formidable");
+const cloudinary = require("../config/cloudinary");
 
-const router = express();
+const router = express.Router();
 
 router.get("/accounts", async (req, res) => {
     try {
@@ -21,9 +23,8 @@ router.get("/accounts", async (req, res) => {
 router.get("/accounts/:id", async (req, res) => {
     const { id } = req.params;
 
+    const account = await Account.findById(id);
     try {
-        const account = await Account.findById(id);
-
         if (!account)
             return res.status(404).json({
                 message: "Account doesn't exists",
@@ -66,8 +67,8 @@ router.post("/accounts", async (req, res) => {
     }
 });
 
-router.post("/accounts/tasks", async (req, res) => {
-    const { date, number, text, account_id } = req.body;
+router.post("/accounts/tasks", formidable(), async (req, res) => {
+    const { date, number, text, account_id } = req.fields;
 
     if (!account_id)
         return res.status(400).json({
@@ -87,10 +88,20 @@ router.post("/accounts/tasks", async (req, res) => {
                 message: "Account doesn't exists",
             });
 
+        let url;
+        if (req.files?.image) {
+            let path = req.files.image.path;
+            const res = await cloudinary.uploader.upload(path, {
+                public_id: account.tasks.length + 1 + "-" + account.name,
+            });
+            url = res.secure_url;
+        }
+
         account.tasks.push({
             date,
             number,
             text,
+            image: url,
         });
 
         await account.save();
@@ -115,6 +126,11 @@ router.delete("/accounts/:id", async (req, res) => {
             return res.status(404).json({
                 message: "Account doesn't exists",
             });
+
+        account.tasks.forEach(async (_, i) => {
+            let path = i + 1 + "-" + account.name;
+            await cloudinary.uploader.destroy(path);
+        });
 
         await Account.findByIdAndDelete(id);
 

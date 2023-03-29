@@ -14,6 +14,7 @@ const Accounts = () => {
         try {
             await axiosInstance.delete(`/accounts/${id}`);
             await getAccounts();
+            message.success("Account has been deleted");
         } catch (err) {
             message.error(
                 err?.response?.data?.message ?? "Something went wrong"
@@ -139,6 +140,7 @@ const CreateAccountModal = ({
                     <h1 className="text-[24px] pb-2">Create Account</h1>
                     <input
                         type="text"
+                        value={name}
                         onChange={(e) => setName(e.target.value)}
                         className="mt-3 text-[18px] text-black font-normal placeholder:text-[14px] border outline-none focus:ring-1 focus:ring-blue-400 w-full py-4 rounded-lg px-2"
                         placeholder="Enter the name"
