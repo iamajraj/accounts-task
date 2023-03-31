@@ -89,14 +89,16 @@ const Tasks = () => {
                 onClick={() => {
                     setModalTask(isSame);
                 }}
-                className={`w-full h-full flex justify-between relative p-1 gap-2 overflow-hidden ${
+                className={`w-full h-full flex items-center justify-center relative p-1 gap-2 overflow-hidden ${
                     isSame
                         ? isSame.number > 0
                             ? "bg-green-500"
                             : "bg-red-500"
                         : ""
                 }`}
-            ></div>
+            >
+                <p className="text-4xl text-white">{isSame && isSame.number}</p>
+            </div>
         );
     };
 
