@@ -240,7 +240,7 @@ const Tasks = () => {
           </div>
         </div>
         <div className="flex flex-col">
-          <h1 className="">This months activities:</h1>
+          <h1 className="">Current month's activities:</h1>
           <div className="text-[15px] mt-4 flex gap-2 items-center">
             <p className="">Total Tasks:</p>{" "}
             <span>{statistics.total_tasks}</span>
