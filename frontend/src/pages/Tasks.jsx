@@ -18,6 +18,8 @@ const Tasks = () => {
 
   const [modalTask, setModalTask] = useState(null);
 
+  const [calenderPanel, setCalenderPanel] = useState(dayjs(new Date()));
+
   const [statistics, setStatistics] = useState({
     total_tasks: 0,
     total_positives: {
@@ -97,7 +99,7 @@ const Tasks = () => {
     };
     user?.tasks?.forEach((task) => {
       const date = dayjs(task.date);
-      if (date.isSame(new Date(), "month")) {
+      if (date.isSame(calenderPanel, "month")) {
         total_tasks += 1;
         let sign = Math.sign(task.number);
         if (sign === 1) {
@@ -114,7 +116,7 @@ const Tasks = () => {
       total_positives,
       total_negatives,
     });
-  }, [user]);
+  }, [user, calenderPanel]);
 
   const totalTasks = useMemo(() => {
     let count = 0;
@@ -240,7 +242,7 @@ const Tasks = () => {
           </div>
         </div>
         <div className="flex flex-col">
-          <h1 className="">Current month's activities:</h1>
+          <h1 className="">{calenderPanel.format("MMMM")} activities:</h1>
           <div className="text-[15px] mt-4 flex gap-2 items-center">
             <p className="">Total Tasks:</p>{" "}
             <span>{statistics.total_tasks}</span>
@@ -265,7 +267,10 @@ const Tasks = () => {
           </div>
         </div>
       </div>
-      <Calendar dateCellRender={renderDateCell} />
+      <Calendar
+        onPanelChange={setCalenderPanel}
+        dateCellRender={renderDateCell}
+      />
       {modalTask && (
         <ModalTask task={modalTask} open={modalTask} setOpen={setModalTask} />
       )}
